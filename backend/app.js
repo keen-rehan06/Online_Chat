@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import authRoute from "./routes/auth.routes.js"
 import cors from "cors";
 import { connectDb } from "./db/db.js";
 
@@ -39,6 +40,7 @@ app.use(
   }),
 );
 app.use(cookieParser());
+app.use("/",authRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
