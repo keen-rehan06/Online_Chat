@@ -9,6 +9,7 @@ import {
 import crypto from "crypto";
 import { verifyEmail } from "../emails/verifyEmail.js";
 import jwt from "jsonwebtoken";
+import { sendOtpOnMail } from "../emails/otpEmail.js";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -24,7 +25,7 @@ export const registerUser = async (req, res, next) => {
     verifyEmail(token, email);
     const hashToken = crypto
       .createHash("sha256")
-      .update(refreshToken)
+      .update(token)
       .digest("hex");
 
     user.token = hashToken;
@@ -70,9 +71,9 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
-    const comparePassword = bcrypt.compare(password, user.password);
+    const comparePassword = await bcrypt.compare(password, user.password);
     if (!comparePassword)
-      return res.status(400).send({ message: "Incorrect Password" });
+      return res.status(400).send({ message: "Incorrect Password",success:false});
     const existingSession = await sessionModel.findOne({ userId: user._id });
     if (existingSession) {
       await sessionModel.deleteOne({ userId: user._id });
@@ -98,7 +99,7 @@ export const loginUser = async (req, res) => {
       .cookie("refreshToken", refreshToken)
       .send({
         message: "Login SuccessFully!",
-        success: false,
+        success: true,
         data: newUser,
         accessToken,
       });
@@ -127,9 +128,10 @@ export const refreshAccessToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken)
-      return res
-        .status(401)
-        .send({ message: "RefresToken is missing! Login First.", success: false });
+      return res.status(401).send({
+        message: "RefresToken is missing! Login First.",
+        success: false,
+      });
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     const user = await userModel.findById(decoded.id);
     if (!user) {
@@ -172,12 +174,101 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
-export const forgotPassword = async(req,res) => {
-    try {
-        const {email} = req.body;
-        if(!email)return res.status(401).send({message:"Email is required!",success:false});
-        
-    } catch (error) {
-        
-    }
-}
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email)
+      return res
+        .status(401)
+        .send({ message: "Email is required!", success: false });
+    const user = await userModel.findOne({ email });
+    if (!user)
+      return res
+        .status(404)
+        .send({ message: "User Not Found.", success: false });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+    const token = generateToken(user);
+    user.otp = otp;
+    user.otpExpiry = expiry;
+    await user.save();
+
+    sendOtpOnMail(otp, email, token);
+
+    const newUser = await userModel.findById(user._id);
+    return res
+      .status(200)
+      .cookie("token", token)
+      .send({ message: "Otp Send SuccessFully!", data: newUser });
+  } catch (error) {
+    console.log(error);
+    console.log(error.message);
+    return res.status(500).send({
+      message: error,
+      success: false,
+    });
+  }
+};
+
+export const confirmOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const user = await userModel.findById(req.user.id);
+    if (!user)
+      return res
+        .status(404)
+        .send({ message: "User Not Found!", success: false });
+    if (!otp)
+      return res
+        .status(401)
+        .send({ message: "OTP is required.", success: false });
+    if (otp !== user.otp)
+      return res.status(401).send({ message: "Invalid Otp!", success: false });
+    if (otp.length < 6)
+      return res
+        .status(401)
+        .send({ message: "OTP Must be 6 number.", success: false });
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+    res.status(200).send({ message: "OTP Verified!", success: true });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(401).send({ message: error, success: false });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId);
+    const { newPassword, confirmPassword } = req.body;
+    if (!newPassword || !confirmPassword)
+      return res
+        .status(401)
+        .send({ message: "All fields are required!!", success: false });
+    if (newPassword !== confirmPassword)
+      return res
+        .status(401)
+        .send({ message: "Password doesn't match", success: false });
+    if (newPassword.length < 6)
+      return res
+        .status(401)
+        .send({ message: "Password at least 6 characters", success: false });
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashPassword;
+    user.token = null;
+    await user.save();
+    const newUser = await userModel.findById(user._id);
+    return res
+      .status(200)
+      .clearCookie("token")
+      .send({ message: "Password Reset SuccessFully!", data: newUser });
+  } catch (error) {
+    console.log(error.message)
+    return res
+      .status(500)
+      .send({ message: "Password Reseting Failed!", success: false, error });
+  }
+};
+

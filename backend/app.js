@@ -6,6 +6,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import authRoute from "./routes/auth.routes.js"
+import userRoute from "./routes/user.routes.js"
 import cors from "cors";
 import { connectDb } from "./db/db.js";
 
@@ -41,6 +42,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use("/",authRoute);
+app.use("/",userRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

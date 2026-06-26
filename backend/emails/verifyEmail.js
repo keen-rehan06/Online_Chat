@@ -33,6 +33,5 @@ const mailOption = {
 transport.sendMail(mailOption, function (error, response) {
     if (error) throw new error(error);
     console.log("Email has been sent successfully");
-  console.log(response);
 });
 };
