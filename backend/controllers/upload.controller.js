@@ -12,12 +12,15 @@ export const uploadFile = async (req, res) => {
         .status(401)
         .send({ message: "File is required!", success: false });
     filePath = req.file.path;
+    console.log(req.file);
     const result = await cloudinary.uploader.upload(filePath, {
       folder: "uploads",
     });
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
+    console.log("File Path:", filePath);
+console.log("Exists:", fs.existsSync(filePath));
     user.profilePic = result.secure_url;
     await user.save();
     res.status(201).send({

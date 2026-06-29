@@ -66,3 +66,21 @@ export const UpdateUserProfile = async (req, res) => {
   }
 };
 
+export const searchUser = async(req,res) => {
+  try {
+    const {query} = req.body;
+    const filter ={
+       $or:[
+      {name:{$regex:query,$options:"i"}},
+      {email:{$regex:query,$options:"i"}}
+    ]
+    }
+    const filterData = await userModel.find(filter);
+    if(filterData.length === 0) {
+      res.status(401).send({message:"No Data Found!",success:false});
+    }
+     res.status(200).send({message:"Data found",filterData})
+  } catch (error) {
+     res.status(500).send({message:"Search Failed!",success:false});
+  }
+}
