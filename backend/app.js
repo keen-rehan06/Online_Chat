@@ -9,6 +9,7 @@ import authRoute from "./routes/auth.routes.js"
 import userRoute from "./routes/user.routes.js"
 import cors from "cors";
 import { connectDb } from "./db/db.js";
+import messageRoute from "./routes/message.routes.js"
 
 (async () => {
   try {
@@ -43,6 +44,7 @@ app.use(
 app.use(cookieParser());
 app.use("/",authRoute);
 app.use("/",userRoute);
+app.use("/",messageRoute)
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

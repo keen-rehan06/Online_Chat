@@ -55,9 +55,11 @@ export const verifyUser = async (req, res) => {
         .status(404)
         .send({ message: "User Not Found!", success: false });
     user.isVerified = true;
+    user.token = null
     await user.save();
     return res
       .status(200)
+      .clearCookie("token")
       .send({ message: "User Verified SuccessFully!", success: true });
   } catch (error) {
     console.log(error.message);
@@ -72,6 +74,7 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
     const comparePassword = await bcrypt.compare(password, user.password);
+    if(!user.isVerified) return res.status(401).send({message:"User Not verified!",success:false}) 
     if (!comparePassword)
       return res.status(400).send({ message: "Incorrect Password",success:false});
     const existingSession = await sessionModel.findOne({ userId: user._id });

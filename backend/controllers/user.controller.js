@@ -81,6 +81,7 @@ export const searchUser = async(req,res) => {
     }
      res.status(200).send({message:"Data found",filterData})
   } catch (error) {
-     res.status(500).send({message:"Search Failed!",success:false});
+    console.log(error.message)
+     res.status(500).send({message:"Search Failed!",success:false,error});
   }
 }
