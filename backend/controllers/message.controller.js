@@ -1,64 +1,22 @@
 import { conversationModel } from "../models/conversation.model.js";
 import { userModel } from "../models/user.model.js";
+import { messageModel } from "../models/message.model.js";
 
-export const createConversation = async (req, res) => {
+export const createMessage = async (req, res) => {
   try {
-    const { receiverId } = req.body;
+    const { content } = req.body;
+    const receiverId = req.params;
     const senderId = req.user.id;
-    if (senderId === receiverId)
-      return res.status(400).send({
-        message: "You can not create your own conversation",
-        success: false,
-      });
-    if (!receiverId)
+    if (!conversation || !content)
       return res
-        .status(400)
-        .send({ message: "Please Select User to Send Data", success: false });
-    const user = await userModel.findById(receiverId);
-    if (!user)
-      return res
-        .status(404)
-        .send({ message: "User Not Found", success: false });
-    const existingConversation = await conversationModel.findOne({
+        .status(401)
+        .send({ message: "All fileds are required!", success: false });
+    const checkExistingSession = await conversationModel.findOne({
       participants: {
         $all: [senderId, receiverId],
       },
     });
-    if (existingConversation) {
-      return res.status(200).send({
-        message: "Conversation Found",
-        success: true,
-        existingConversation,
-      });
-    }
-    const newConversation = await conversationModel.create({
-      participants: [senderId, receiverId],
-    });
-    return res.status(201).json({
-      message: "New Conversation Created!",
-      success: true,
-      conversation: newConversation,
-    });
-  } catch (error) {
-    return res.status(500).send({
-      message: error.message,
-      details: error,
-      success: false,
-    });
-  }
+  if(!checkExistingSession) return res.status(404).send({message:"No conversation found",success:false});
+   const createMessage = await messageModel
+  } catch (error) {}
 };
-
-export const showConversation = async (req,res) => {
-  try {
-    const userId = req.user.id;
-    const findConversation = await conversationModel.find({
-      participants:userId
-    }).populate("participants","name email profilePic bio") 
-    if(findConversation.length === 0) return res.status(200).send({message:"No Conversation Found!",success:false,conversation:[]})
-      return res.status(200).send({message:`User ${findConversation.length === 1 ? "Conversation" : "Conversations"}`,findConversation});
-  } catch (error) {
-    console.log(error.message)
-    return res.status(500).send({message:"Failed To Find Conversation!",success:false,error})
-  }
-}
-

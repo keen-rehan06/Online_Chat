@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    consversation: {
+    consversationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "conversation",
       required: true,
@@ -12,12 +12,14 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
     },
-    content: {
-      type: String,
-      required: true,
-      required: true,
-      index: true,
-    },
+    content: [
+      {
+        type: String,
+        required: true,
+        required: true,
+        index: true,
+      },
+    ],
     messageType: {
       type: String,
       enum: ["text", "image", "video", "audio", "document"],
@@ -42,13 +44,3 @@ const messageSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-
-/*
- consversation,
- sender
- content
- messageType,
- mediaUrl,
- isEdited,
- seenBy
-*/
