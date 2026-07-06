@@ -1,8 +1,9 @@
 import express from "express";
-import { createConversation, showConversation } from "../controllers/message.controller.js";
+import { sendMessage, } from "../controllers/message.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 
 const app = express.Router();
 
+app.post("/send-message",isLoggedIn,sendMessage)
 
 export default app;

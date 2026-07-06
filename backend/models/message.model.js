@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    consversationId: {
+    conservationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "conversation",
       required: true,
@@ -44,3 +44,5 @@ const messageSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+export const messageModel = new mongoose.model("message",messageSchema);

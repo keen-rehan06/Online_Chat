@@ -1,5 +1,5 @@
 import express from "express";
-import { createConversation, showConversation } from "../controllers/message.controller.js";
+import { createConversation, showConversation } from "../controllers/conversation.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 
 const app = express.Router();
