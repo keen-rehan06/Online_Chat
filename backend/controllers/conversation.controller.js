@@ -55,10 +55,6 @@ export const createConversation = async (req, res) => {
   }
 };
 
-// find the conversation and populate participants
-// check conversation length is 0
-// rather give conversations
-
 export const showConversation = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -73,11 +69,12 @@ export const showConversation = async (req, res) => {
     return res
       .status(200)
       .send({
-        message: `User ${findConversation.length === 1 ? "Conversation" : "Conversations"}`,
+        message: `User ${findConversations.length === 1 ? "Conversation" : "Conversations"}`,
         success: true,
         conversation: findConversations,
       });
   } catch (error) {
+    console.log(error.message)
     return res
       .status(500)
       .send({ message: "Failed To Find Conversation!", success: false, error });
