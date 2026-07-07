@@ -60,8 +60,12 @@ export const showConversation = async (req, res) => {
     const userId = req.user.id;
     const findConversations = await conversationModel
       .find({ participants: userId })
-      .populate("participants", "name email profilePic");
-    if (!findConversations)
+      .populate("participants", "name email profilePic")
+      .populate("lastMessage") 
+      .sort({updateAt:-1})
+
+
+    if (findConversations.length === 0)
       return res
         .status(200)
         .send({ message: "No conversation Found!", success: false, data: [] });

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    conservationId: {
+    conversationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "conversation",
       required: true,
