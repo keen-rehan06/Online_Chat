@@ -274,4 +274,3 @@ export const changePassword = async (req, res) => {
       .send({ message: "Password Reseting Failed!", success: false, error });
   }
 };
-
